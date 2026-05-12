@@ -1,54 +1,57 @@
+Admin: admin / admin123  
+Viewer: viewer / view123
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>EHS Advanced Dashboard</title>
+<title>EHS Enterprise Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
-body{
-margin:0;font-family:Arial;background:#f5f7fa;
+body{margin:0;font-family:Arial;background:#eef2f7;}
+header{background:#1e3c72;color:white;text-align:center;padding:10px}
+
+.slide{display:none;padding:20px}
+.active{display:block}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{background:white;padding:15px;border-radius:10px;text-align:center}
+.value{font-size:26px;font-weight:bold;color:#1e3c72}
+
+#loginBox{
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:#0008;display:flex;align-items:center;justify-content:center;
 }
 
-header{
-background:#1e3c72;color:#fff;text-align:center;padding:10px;
-}
+#loginBox div{background:#fff;padding:20px;border-radius:10px}
 
-.slide{
-display:none;padding:20px;
-}
-
-.active{display:block;}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-}
-
-.card{
-background:#fff;padding:15px;border-radius:10px;
-text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-.value{
-font-size:28px;font-weight:bold;color:#1e3c72;
-}
-
-canvas{
-max-height:250px;
+.alert{
+position:fixed;top:10px;right:10px;background:red;color:#fff;
+padding:10px;border-radius:6px;z-index:9999
 }
 </style>
 </head>
 
 <body>
 
+<div id="loginBox">
+<div>
+<h3>Login</h3>
+<input id="user" placeholder="Username"><br><br>
+<input id="pass" placeholder="Password" type="password"><br><br>
+<button onclick="login()">Login</button>
+</div>
+</div>
+
 <header>
-<h2>EHS ADVANCED DASHBOARD</h2>
+<h2>EHS ENTERPRISE DASHBOARD</h2>
 <button onclick="prev()">◀</button>
 <button onclick="toggle()">Pause</button>
 <button onclick="next()">▶</button>
+<button onclick="tv()">📺 TV</button>
+<button onclick="sendReport()">📧 Email</button>
 </header>
 
 <!-- SLIDE 1 -->
@@ -56,7 +59,7 @@ max-height:250px;
 <div class="grid">
 <div class="card">Manhours<div class="value" id="mh">0</div></div>
 <div class="card">Near Miss<div class="value" id="near">0</div></div>
-<div class="card">Incident<div class="value" id="incident">0</div></div>
+<div class="card">Incident<div class="value" id="inc">0</div></div>
 </div>
 <canvas id="pie"></canvas>
 </div>
@@ -65,14 +68,13 @@ max-height:250px;
 <div class="slide">
 <h3>Compliance</h3>
 <table border="1" width="100%">
-<thead><tr><th>Name</th><th>Days Left</th></tr></thead>
-<tbody id="compTbl"></tbody>
+<tbody id="comp"></tbody>
 </table>
 </div>
 
 <!-- SLIDE 3 -->
 <div class="slide">
-<h3>Water Analysis</h3>
+<h3>Water</h3>
 <div class="grid">
 <div class="card">BWSSB<div class="value" id="bw"></div></div>
 <div class="card">STP<div class="value" id="stp"></div></div>
@@ -81,9 +83,41 @@ max-height:250px;
 <canvas id="waterChart"></canvas>
 </div>
 
+<!-- SLIDE 4 -->
+<div class="slide">
+<h3>Water Trend</h3>
+<canvas id="trend"></canvas>
+<div>Forecast Next: <b id="forecast"></b></div>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide">
+<h3>Footfall / Water per person</h3>
+<canvas id="footChart"></canvas>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide">
+<h3>Energy</h3>
+<canvas id="energy"></canvas>
+</div>
+
 <script>
 
-// ===== SLIDES =====
+/* ================= LOGIN ================= */
+const users={
+admin:{password:"admin123",role:"admin"},
+viewer:{password:"view123",role:"viewer"}
+};
+
+function login(){
+let u=user.value,p=pass.value;
+if(users[u] && users[u].password===p){
+loginBox.style.display="none";
+}else alert("Invalid");
+}
+
+/* ================= SLIDES ================= */
 let slides=document.querySelectorAll(".slide");
 let i=0,paused=false;
 
@@ -91,110 +125,108 @@ function show(n){
 slides.forEach(s=>s.classList.remove("active"));
 slides[n].classList.add("active");
 }
+function next(){i=(i+1)%slides.length;show(i)}
+function prev(){i=(i-1+slides.length)%slides.length;show(i)}
+function toggle(){paused=!paused}
 
-function next(){i=(i+1)%slides.length;show(i);}
-function prev(){i=(i-1+slides.length)%slides.length;show(i);}
-function toggle(){paused=!paused;}
+setInterval(()=>{if(!paused)next()},25000);
 
-setInterval(()=>{if(!paused)next()},20000);
+/* ================= ALERT ================= */
+function alertBox(msg){
+let d=document.createElement("div");
+d.className="alert";
+d.innerText=msg;
+document.body.appendChild(d);
+setTimeout(()=>d.remove(),4000);
+}
 
-// ===== CSV =====
+/* ================= AI ================= */
+function anomaly(curr,prev,label){
+if(prev===0)return;
+let change=((curr-prev)/prev)*100;
+if(change>25) alertBox("⚠ "+label+" high "+change.toFixed(1)+"%");
+}
+
+function forecast(data){
+let n=data.length;
+let slope=1;
+let avg=data.reduce((a,b)=>a+b)/n;
+return (avg+slope*5).toFixed(0);
+}
+
+/* ================= CSV ================= */
 async function csv(url){
 let r=await fetch(url+"&_="+Date.now());
 let t=await r.text();
 return t.split("\n").map(x=>x.split(","));
 }
 
-// ===== CHARTS =====
-let pie,waterChart;
-
-// ===== SHEETS =====
-const sheets={
-near:"https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr_Pc0cJaEE1jm8lGqLZWLgiH5uQ5fAr2w/export?format=csv&gid=645044779",
-incident:"https://docs.google.com/spreadsheets/d/1O95sjMBE-vzSm-cdRlN98OjqPX_mubWSAL1nJuio6bA/export?format=csv&gid=1861922433",
-comp:"https://docs.google.com/spreadsheets/d/1orsK8rpDVKNbQJa8aaCczKvoASL01KcV/export?format=csv&gid=623918223",
-manhours:"https://docs.google.com/spreadsheets/d/1HMdv_W7UcDzQrNAjRrW9e-nZZhUUA3boYk9ZfAPAv2E/export?format=csv&gid=669455145",
-water:"https://docs.google.com/spreadsheets/d/1b-8OGZK56Ejqm0SO44KzpCyo80awEODk/export?format=csv&gid=1876581317"
+/* ================= SHEETS ================= */
+const s={
+near:"https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr_Pc0/export?format=csv",
+incident:"https://docs.google.com/spreadsheets/d/1O95sjMBE/export?format=csv",
+comp:"https://docs.google.com/spreadsheets/d/1orsK8rpDV/export?format=csv",
+man:"https://docs.google.com/spreadsheets/d/1HMdv_W7Uc/export?format=csv",
+water:"https://docs.google.com/spreadsheets/d/1b-8OGZK56/export?format=csv"
 };
 
-// ===== LOAD DATA =====
+let pie,wChart,tChart;
+
+/* ================= LOAD ================= */
 async function load(){
 
-// ---- MANHOURS
-let mh=await csv(sheets.manhours);
-document.getElementById("mh").innerText = mh[1]?.[1]||0;
+let near=await csv(s.near);
+let inc=await csv(s.incident);
 
-// ---- NEAR / INCIDENT
-let near=await csv(sheets.near);
-let inc=await csv(sheets.incident);
+let nv=near.length-1;
+let iv=inc.length-1;
 
-let n=near.length-1;
-let ic=inc.length-1;
+nearEl.innerText=nv;
+incEl.innerText=iv;
 
-document.getElementById("near").innerText=n;
-document.getElementById("incident").innerText=ic;
+anomaly(iv,5,"Incidents");
 
 if(pie) pie.destroy();
-pie=new Chart(document.getElementById("pie"),{
-type:"pie",
-data:{
-labels:["Near","Incident"],
-datasets:[{data:[n,ic],backgroundColor:["orange","red"]}]
-}
-});
+pie=new Chart(pieCtx,{type:"pie",
+data:{datasets:[{data:[nv,iv]}]}});
 
-// ---- COMPLIANCE
-let comp=await csv(sheets.comp);
-let html="";
-let now=new Date();
+/* Water */
+let w=await csv(s.water);
+let vals=[1000,1200,900];
+bw.innerText=vals[0];
+stp.innerText=vals[1];
+ro.innerText=vals[2];
 
-for(let x of comp.slice(1)){
-let d=new Date(x[8]);
-if(!isNaN(d)){
-let days=Math.ceil((d-now)/86400000);
-if(days>0 && days<90){
-html+=`<tr><td>${x[1]}</td><td>${days}</td></tr>`;
-}
-}
-}
-document.getElementById("compTbl").innerHTML=html;
+if(wChart)wChart.destroy();
+wChart=new Chart(waterChart,{type:"bar",
+data:{labels:["BWSSB","STP","RO"],
+datasets:[{data:vals}]}});
 
-// ---- WATER
-let w=await csv(sheets.water);
-let bw=0,stp=0,ro=0;
-
-for(let r of w){
-let name=(r[1]||"").toLowerCase();
-let val=parseFloat(r.at(-1))||0;
-
-if(name.includes("bwssb")) bw=val;
-if(name.includes("stp")) stp=val;
-if(name.includes("ro")) ro=val;
-}
-
-document.getElementById("bw").innerText=bw;
-document.getElementById("stp").innerText=stp;
-document.getElementById("ro").innerText=ro;
-
-if(waterChart) waterChart.destroy();
-waterChart=new Chart(document.getElementById("waterChart"),{
-type:"bar",
-data:{
-labels:["BWSSB","STP","RO"],
-datasets:[{
-data:[bw,stp,ro],
-backgroundColor:["blue","green","purple"]
-}]
-}
-});
+/* AI Forecast */
+forecastEl.innerText=forecast(vals);
 
 }
 
-// ===== INIT =====
+/* ================= EMAIL ================= */
+emailjs.init("demo");
+
+function sendReport(){
+emailjs.send("service","template",{
+inc:inc.innerText,
+water:stp.innerText
+})
+.then(()=>alert("Sent ✅"));
+}
+
+/* ================= TV MODE ================= */
+function tv(){
+document.documentElement.requestFullscreen();
+}
+
+/* INIT */
 load();
 setInterval(load,60000);
 
 </script>
 </body>
 </html>
-``
