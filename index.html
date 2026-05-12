@@ -1,202 +1,200 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>EHS Dashboard</title>
+<title>EHS Advanced Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-body {margin:0;font-family:Arial;background:#f0f2f5;}
+body{
+margin:0;font-family:Arial;background:#f5f7fa;
+}
 
 header{
 background:#1e3c72;color:#fff;text-align:center;padding:10px;
 }
 
-.controls button{
-padding:5px 10px;margin:3px;font-size:12px;border:none;
-background:#2a5298;color:#fff;border-radius:5px;cursor:pointer;
+.slide{
+display:none;padding:20px;
 }
 
-.slide{display:none;padding:20px;}
 .active{display:block;}
 
-.box{
-background:black;color:white;padding:15px;margin:10px auto;
-border-radius:8px;text-align:center;width:250px;
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
 }
 
-.value{font-size:30px;}
+.card{
+background:#fff;padding:15px;border-radius:10px;
+text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
 
-canvas{max-width:400px;margin:auto;}
+.value{
+font-size:28px;font-weight:bold;color:#1e3c72;
+}
 
+canvas{
+max-height:250px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h2>EHS Dashboard</h2>
-
-<div class="controls">
-<button onclick="prevSlide()">◀</button>
-<button onclick="toggleHold()" id="holdBtn">Pause</button>
-<button onclick="nextSlide()">▶</button>
-</div>
-
-<div id="time"></div>
+<h2>EHS ADVANCED DASHBOARD</h2>
+<button onclick="prev()">◀</button>
+<button onclick="toggle()">Pause</button>
+<button onclick="next()">▶</button>
 </header>
-
-<div id="loading" style="text-align:center;padding:20px;">Loading...</div>
 
 <!-- SLIDE 1 -->
 <div class="slide active">
-<div class="box">Manhours<div class="value" id="manhours">0</div></div>
-<div class="box">Near Miss<div class="value" id="near">0</div></div>
-<div class="box">Incident<div class="value" id="incident">0</div></div>
-<canvas id="ehsPie"></canvas>
+<div class="grid">
+<div class="card">Manhours<div class="value" id="mh">0</div></div>
+<div class="card">Near Miss<div class="value" id="near">0</div></div>
+<div class="card">Incident<div class="value" id="incident">0</div></div>
+</div>
+<canvas id="pie"></canvas>
 </div>
 
 <!-- SLIDE 2 -->
 <div class="slide">
 <h3>Compliance</h3>
 <table border="1" width="100%">
-<thead><tr><th>Item</th><th>Due</th></tr></thead>
-<tbody id="table"></tbody>
+<thead><tr><th>Name</th><th>Days Left</th></tr></thead>
+<tbody id="compTbl"></tbody>
 </table>
 </div>
 
 <!-- SLIDE 3 -->
 <div class="slide">
-<h3>Water Dashboard</h3>
-<canvas id="waterPie"></canvas>
+<h3>Water Analysis</h3>
+<div class="grid">
+<div class="card">BWSSB<div class="value" id="bw"></div></div>
+<div class="card">STP<div class="value" id="stp"></div></div>
+<div class="card">RO<div class="value" id="ro"></div></div>
+</div>
+<canvas id="waterChart"></canvas>
 </div>
 
 <script>
 
-/* ✅ SAFE FETCH */
-async function safeFetch(url){
- try{
-  let res=await fetch(url);
-  if(!res.ok) throw "error";
-  return await res.text();
- }catch(e){console.log(e);return null;}
-}
-
-/* ✅ TIME */
-setInterval(()=>{
-document.getElementById("time").innerText=new Date().toLocaleString();
-},1000);
-
-/* ✅ SLIDES */
-let current=0,slides=document.querySelectorAll(".slide");
-let timer; let paused=false;
+// ===== SLIDES =====
+let slides=document.querySelectorAll(".slide");
+let i=0,paused=false;
 
 function show(n){
 slides.forEach(s=>s.classList.remove("active"));
 slides[n].classList.add("active");
 }
-function nextSlide(){current=(current+1)%slides.length;show(current);}
-function prevSlide(){current=(current-1+slides.length)%slides.length;show(current);}
 
-function startSlides(){
-timer=setInterval(()=>{if(!paused)nextSlide()},30000);
-}
-function toggleHold(){
-paused=!paused;
-document.getElementById("holdBtn").innerText=paused?"Resume":"Pause";
-}
+function next(){i=(i+1)%slides.length;show(i);}
+function prev(){i=(i-1+slides.length)%slides.length;show(i);}
+function toggle(){paused=!paused;}
 
-/* ✅ CSV */
+setInterval(()=>{if(!paused)next()},20000);
+
+// ===== CSV =====
 async function csv(url){
-let t=await safeFetch(url+"&_="+Date.now());
-if(!t) return [];
+let r=await fetch(url+"&_="+Date.now());
+let t=await r.text();
 return t.split("\n").map(x=>x.split(","));
 }
 
-/* ✅ PIE */
-let pie,waterPie;
+// ===== CHARTS =====
+let pie,waterChart;
 
-function updatePie(a,b){
-if(pie) pie.destroy();
-pie=new Chart(document.getElementById("ehsPie"),{
-type:"pie",
-data:{labels:["Near","Incident"],datasets:[{data:[a,b]}]}
-});
-}
-
-function updateWaterPie(values){
-if(waterPie) waterPie.destroy();
-waterPie=new Chart(document.getElementById("waterPie"),{
-type:"pie",
-data:{datasets:[{data:values}]}
-});
-}
-
-/* ✅ DATA LOAD */
+// ===== SHEETS =====
 const sheets={
-near:"https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr/export?format=csv",
-incident:"https://docs.google.com/spreadsheets/d/1O95sjMBE/export?format=csv",
-comp:"https://docs.google.com/spreadsheets/d/1orsK8rpDV/export?format=csv",
-manhours:"https://docs.google.com/spreadsheets/d/1HMdv_W7Uc/export?format=csv",
-water:"https://docs.google.com/spreadsheets/d/1b-8OGZK56/export?format=csv"
+near:"https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr_Pc0cJaEE1jm8lGqLZWLgiH5uQ5fAr2w/export?format=csv&gid=645044779",
+incident:"https://docs.google.com/spreadsheets/d/1O95sjMBE-vzSm-cdRlN98OjqPX_mubWSAL1nJuio6bA/export?format=csv&gid=1861922433",
+comp:"https://docs.google.com/spreadsheets/d/1orsK8rpDVKNbQJa8aaCczKvoASL01KcV/export?format=csv&gid=623918223",
+manhours:"https://docs.google.com/spreadsheets/d/1HMdv_W7UcDzQrNAjRrW9e-nZZhUUA3boYk9ZfAPAv2E/export?format=csv&gid=669455145",
+water:"https://docs.google.com/spreadsheets/d/1b-8OGZK56Ejqm0SO44KzpCyo80awEODk/export?format=csv&gid=1876581317"
 };
 
-async function loadStats(){
+// ===== LOAD DATA =====
+async function load(){
+
+// ---- MANHOURS
+let mh=await csv(sheets.manhours);
+document.getElementById("mh").innerText = mh[1]?.[1]||0;
+
+// ---- NEAR / INCIDENT
 let near=await csv(sheets.near);
 let inc=await csv(sheets.incident);
 
-document.getElementById("near").innerText=near.length-1;
-document.getElementById("incident").innerText=inc.length-1;
+let n=near.length-1;
+let ic=inc.length-1;
 
-updatePie(near.length-1,inc.length-1);
+document.getElementById("near").innerText=n;
+document.getElementById("incident").innerText=ic;
+
+if(pie) pie.destroy();
+pie=new Chart(document.getElementById("pie"),{
+type:"pie",
+data:{
+labels:["Near","Incident"],
+datasets:[{data:[n,ic],backgroundColor:["orange","red"]}]
 }
+});
 
-async function loadManhours(){
-let data=await csv(sheets.manhours);
-document.getElementById("manhours").innerText=(data[1]?.[1]||0);
-}
-
-async function loadCompliance(){
-let data=await csv(sheets.comp);
+// ---- COMPLIANCE
+let comp=await csv(sheets.comp);
 let html="";
-for(let i=1;i<data.length;i++){
-html+=`<tr><td>${data[i][0]}</td><td>${data[i][1]}</td></tr>`;
+let now=new Date();
+
+for(let x of comp.slice(1)){
+let d=new Date(x[8]);
+if(!isNaN(d)){
+let days=Math.ceil((d-now)/86400000);
+if(days>0 && days<90){
+html+=`<tr><td>${x[1]}</td><td>${days}</td></tr>`;
 }
-document.getElementById("table").innerHTML=html;
+}
+}
+document.getElementById("compTbl").innerHTML=html;
+
+// ---- WATER
+let w=await csv(sheets.water);
+let bw=0,stp=0,ro=0;
+
+for(let r of w){
+let name=(r[1]||"").toLowerCase();
+let val=parseFloat(r.at(-1))||0;
+
+if(name.includes("bwssb")) bw=val;
+if(name.includes("stp")) stp=val;
+if(name.includes("ro")) ro=val;
 }
 
-async function loadWater(){
-let data=await csv(sheets.water);
-let values=[10,20,30,40,50];
-updateWaterPie(values);
+document.getElementById("bw").innerText=bw;
+document.getElementById("stp").innerText=stp;
+document.getElementById("ro").innerText=ro;
+
+if(waterChart) waterChart.destroy();
+waterChart=new Chart(document.getElementById("waterChart"),{
+type:"bar",
+data:{
+labels:["BWSSB","STP","RO"],
+datasets:[{
+data:[bw,stp,ro],
+backgroundColor:["blue","green","purple"]
+}]
+}
+});
+
 }
 
-/* ✅ INIT */
-async function init(){
-show(0);
-startSlides();
-
-await Promise.all([
-loadStats(),
-loadManhours(),
-loadCompliance(),
-loadWater()
-]);
-
-document.getElementById("loading").style.display="none";
-}
-
-init();
-
-/* ✅ AUTO REFRESH (Optimized) */
-setInterval(loadStats,60000);
-setInterval(loadManhours,120000);
-setInterval(loadCompliance,120000);
-setInterval(loadWater,120000);
+// ===== INIT =====
+load();
+setInterval(load,60000);
 
 </script>
 </body>
 </html>
+``
