@@ -1,231 +1,2355 @@
 Admin: admin / admin123  
 Viewer: viewer / view123
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>EHS Enterprise Dashboard</title>
+<title>EHS Dashboard FINAL UNIFIED</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#eef2f7;}
-header{background:#1e3c72;color:white;text-align:center;padding:10px}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial, sans-serif; background:#f0f2f5; overflow-x: hidden; }
 
-.slide{display:none;padding:20px}
-.active{display:block}
-
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.card{background:white;padding:15px;border-radius:10px;text-align:center}
-.value{font-size:26px;font-weight:bold;color:#1e3c72}
-
-#loginBox{
-position:fixed;top:0;left:0;width:100%;height:100%;
-background:#0008;display:flex;align-items:center;justify-content:center;
+header {
+  background: linear-gradient(to right,#1e3c72,#2a5298);
+  color:white;
+  text-align:center;
+  padding: 10px;
+  position:relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Fixed height to prevent layout jumping */
+  min-height: 130px; 
+  flex-shrink: 0;
 }
 
-#loginBox div{background:#fff;padding:20px;border-radius:10px}
+header h2 { font-size:22px; letter-spacing:1px; margin-bottom: 5px; }
+#time { font-size:12px; opacity:0.9; margin-top:2px; }
 
-.alert{
-position:fixed;top:10px;right:10px;background:red;color:#fff;
-padding:10px;border-radius:6px;z-index:9999
+.slide { display:none; width: 100%; }
+.active { display:block; }
+
+/* SLIDE 1 */
+.container {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:20px;
+}
+
+.box {
+  background:black;
+  color:white;
+  padding:20px;
+  text-align:center;
+  border-radius:8px;
+}
+
+.value { font-size:35px; font-weight:bold; }
+
+.chartBox { width:300px; margin:auto; }
+
+/* SLIDE 2 */
+table {
+  width:95%;
+  margin:auto;
+  border-collapse:collapse;
+  background:white;
+}
+
+th, td {
+  border:1px solid #ccc;
+  padding:10px;
+  text-align:center;
+}
+
+th {
+  background:#1e3c72;
+  color:white;
+}
+
+.red { background:#ff4444; color:white; font-weight:bold; }
+
+/* =========================================
+   SLIDE 3 - UNIFIED DESIGN (ONE STYLE)
+   ========================================= */
+.slide3-wrapper {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  padding: 25px;
+  margin: 15px auto;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid #334155;
+  color: white;
+  max-width: 1600px;
+}
+
+.slide3-header {
+  text-align: center;
+  color: #38bdf8;
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 10px rgba(56,189,248,0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 10px;
+}
+
+/* Unified Layout for Readings + Pie */
+.waterLayout {
+  display: grid;
+  grid-template-columns: 1fr 300px 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+  align-items: start;
+}
+
+.waterLeft, .waterRight {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* Unified Box Style */
+.slide3-wrapper .box {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #38bdf8;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: transform 0.3s;
+}
+
+.slide3-wrapper .box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(56,189,248,0.4);
+}
+
+/* Unified Charts Row */
+.unified-charts-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.unified-chart-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #38bdf8;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.unified-chart-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(56,189,248,0.4);
+}
+
+.unified-chart-title {
+  color: #38bdf8;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.unified-value-box {
+  background: rgba(56,189,248,0.15);
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.unified-value-box h3 {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.unified-chart-container {
+  height: 140px;
+  width: 100%;
+}
+
+/* Daily Tracker */
+.unified-daily-tracker {
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 4px solid #38bdf8;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.unified-daily-title {
+  color: #38bdf8;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.unified-day-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.unified-day-box {
+  text-align: center;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.unified-label {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.unified-val {
+  color: #38bdf8;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.waterCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* SLIDE 4 */
+.s4-wrapper {
+  padding:12px 16px;
+}
+
+.s4-top-bar {
+  background: linear-gradient(to right,#1e3c72,#2a5298);
+  color:white;
+  padding:8px 16px;
+  font-size:15px;
+  font-weight:bold;
+  border-radius:6px 6px 0 0;
+  letter-spacing:0.5px;
+}
+
+.s4-kpi-row {
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.s4-kpi {
+  background:#1a1a1a;
+  color:white;
+  border-radius:6px;
+  box-shadow:0 4px 6px rgba(0,0,0,0.3);
+  border-top: 4px solid #2a5298;
+  text-align:center;
+  padding:15px 5px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.s4-kpi-head {
+  color: #aaa;
+  font-size:11px;
+  font-weight:bold;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  margin-bottom:5px;
+}
+
+.s4-kpi-body { padding:0; }
+
+.s4-kpi-val {
+  font-size:26px;
+  font-weight:bold;
+  color: #fff;
+  line-height:1;
+}
+
+.s4-kpi-unit {
+  font-size:10px;
+  color:#fff;
+  margin-top:2px;
+  font-weight:bold;
+}
+
+.s4-section-title {
+  background:#1e3c72;
+  color:white;
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:bold;
+  border-radius:6px 6px 0 0;
+  margin-top:6px;
+  letter-spacing:0.5px;
+}
+
+.s4-charts-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.s4-chart-card {
+  background:#fff;
+  border-radius:0 0 6px 6px;
+  padding:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+.s4-chart-card .chart-label {
+  font-size:12px;
+  font-weight:bold;
+  color:#1e3c72;
+  text-align:center;
+  margin-bottom:6px;
+  padding-bottom:5px;
+  border-bottom:2px solid #e0e0e0;
+}
+
+.s4-chart-card canvas {
+  width:100% !important;
+  height:200px !important;
+}
+
+/* ASCII CHART */
+.total-kld-chart {
+  background: #fff;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.total-kld-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #1655c1;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.ascii-bars-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.debug-info {
+  font-size: 9px;
+  color: #aaa;
+  margin-top: 5px;
+  flex-shrink: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* SLIDE 5 - FIXED HEIGHT CALCULATION */
+/* =========================================
+   SLIDE 5 - FIXED PERFECT LAYOUT
+   ========================================= */
+
+.s5-container{
+  width:98%;
+  max-width:1500px;
+
+  margin:10px auto;
+
+  background:white;
+
+  border-radius:20px;
+
+  overflow:hidden;
+
+  box-shadow:0 8px 25px rgba(0,0,0,0.12);
+
+  display:flex;
+  flex-direction:column;
+
+  min-height:78vh;
+
+  height:auto;
+}
+
+/* HEADER */
+
+.s5-header{
+  background:linear-gradient(135deg,#2c5044,#3498db);
+
+  color:white;
+
+  padding:14px 20px;
+
+  text-align:center;
+
+  flex-shrink:0;
+}
+
+.s5-header h1{
+  font-size:24px;
+
+  margin:0;
+
+  letter-spacing:0.5px;
+
+  font-weight:700;
+}
+
+/* CONTENT */
+
+.s5-content{
+  flex:1;
+
+  display:flex;
+
+  flex-direction:column;
+
+  padding:14px;
+
+  gap:14px;
+
+  overflow:hidden;
+}
+
+/* METRICS */
+
+.s5-metrics{
+  display:grid;
+
+  grid-template-columns:repeat(3,1fr);
+
+  gap:12px;
+
+  flex-shrink:0;
+}
+
+.s5-metric{
+  color:white;
+
+  padding:18px 12px;
+
+  border-radius:14px;
+
+  text-align:center;
+
+  box-shadow:0 5px 14px rgba(0,0,0,0.15);
+
+  min-height:120px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+}
+
+.s5-metric-value{
+  font-size:34px;
+
+  font-weight:bold;
+
+  margin-bottom:6px;
+
+  line-height:1;
+}
+
+.s5-metric-label{
+  font-size:14px;
+
+  opacity:0.95;
+}
+
+.s5-metric small,
+#rainPeak,
+#growth,
+#waterMin{
+  font-size:12px;
+
+  margin-top:5px;
+
+  display:block;
+}
+
+/* CHART AREA */
+
+.s5-charts{
+  flex:1;
+
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:14px;
+
+  min-height:360px;
+}
+
+/* CHART BOX */
+
+.s5-chart-box{
+  background:#f8fafc;
+
+  border-radius:14px;
+
+  padding:12px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+
+  min-height:360px;
+}
+
+.s5-chart-box h3{
+  margin-bottom:10px;
+
+  text-align:center;
+
+  color:#1e293b;
+
+  font-size:16px;
+
+  font-weight:700;
+
+  flex-shrink:0;
+}
+
+/* IMPORTANT FIX */
+
+.s5-chart-box canvas{
+  width:100% !important;
+
+  height:300px !important;
+
+  max-height:300px !important;
+}
+
+/* FOOTER */
+
+.s5-footer{
+  background:linear-gradient(135deg,#1e293b,#334155);
+
+  color:white;
+
+  text-align:center;
+
+  padding:10px;
+
+  font-size:13px;
+
+  font-weight:bold;
+
+  flex-shrink:0;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media(max-width:1100px){
+
+  .s5-charts{
+    grid-template-columns:1fr;
+  }
+
+  .s5-chart-box{
+    min-height:320px;
+  }
+
+  .s5-chart-box canvas{
+    height:260px !important;
+  }
+}
+
+@media(max-width:768px){
+
+  .s5-container{
+    width:96%;
+
+    min-height:auto;
+  }
+
+  .s5-metrics{
+    grid-template-columns:1fr;
+  }
+
+  .s5-header h1{
+    font-size:18px;
+  }
+
+  .s5-metric-value{
+    font-size:28px;
+  }
+
+  .s5-chart-box{
+    min-height:280px;
+  }
+
+  .s5-chart-box canvas{
+    height:220px !important;
+  }
+}
+/* SLIDE 6 */
+.slide:nth-child(6) {
+    height: 100vh;
+    display: none;
+    flex-direction: column;
+    background: linear-gradient(135deg,#eef2ff,#f8fafc);
+}
+
+.slide:nth-child(6).active {
+    display: flex;
+}
+
+.s6-header{
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+    color:white;
+    text-align:center;
+    padding:10px;
+    font-size:16px;
+    font-weight:600;
+    border-radius: 8px 8px 0 0;
+    margin: 0 10px;
+}
+
+.s6-summary{
+    display:flex;
+    justify-content:space-around;
+    padding:10px;
+    gap:10px;
+    margin: 0 10px;
+}
+
+.s6-summary div{
+    background:white;
+    padding:10px 15px;
+    border-radius:10px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+    text-align:center;
+    flex: 1;
+}
+
+.s6-summary b{
+    font-size:18px;
+    color:#1d4ed8;
+}
+
+.s6-dashboard{
+    flex: 1;
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    grid-template-rows:1fr 1fr;
+    gap:10px;
+    padding:10px;
+    margin-bottom: 70px;
+}
+
+.s6-card{
+    background:white;
+    border-radius:14px;
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+    overflow:hidden;
+    border: 1px solid #e0e7ff;
+}
+
+.s6-card h4{
+    font-size:14px;
+    margin-bottom:10px;
+    color: #333;
+}
+
+.s6-chart-box{
+    flex:1;
+    width:100%;
+    height:100%;
+    position: relative;
+}
+
+.s6-power-month {
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: rgba(255,255,255,0.9);
+    padding: 4px 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.s6-modal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.85);
+    z-index: 10000;
+}
+
+.s6-modal-content{
+    width:90%;
+    height:85%;
+    background:white;
+    border-radius:12px;
+    padding:15px;
+}
+
+/* CONTROLS - SMALLER SIZE */
+/* CONTROLS - IMPROVED DIM/BRIGHT EFFECT */
+.controls { 
+  text-align:center; 
+  margin: 5px 0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+}
+
+button {
+  /* Base dimmed state */
+  padding: 4px 10px;
+  margin: 0 4px;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(30, 60, 114, 0.6);
+  color: rgba(255,255,255,0.7);
+  cursor:pointer;
+  border-radius: 6px;
+  min-width: 75px;
+  font-size: 12px;
+  font-weight:bold;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Dimmed shadow */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  opacity: 0.8;
+}
+
+button:hover, 
+button:focus {
+  /* Bright state */
+  background: #1e3c72 !important;
+  color: white !important;
+  border-color: rgba(255,255,255,0.9) !important;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.6);
+  opacity: 1 !important;
+}
+
+button:active {
+  transform: translateY(0) scale(1.02);
+}
+
+#holdBtn {
+  background: rgba(255, 152, 0, 0.6) !important;
+  border-color: rgba(255, 152, 0, 0.4);
+}
+
+#holdBtn:hover,
+#holdBtn:focus {
+  background: #ff9800 !important;
+  border-color: #fff !important;
+}
+
+#holdBtn.active {
+  background: rgba(76, 175, 80, 0.8) !important;
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+#holdBtn.active:hover,
+#holdBtn.active:focus {
+  background: #4caf50 !important;
+  border-color: #fff !important;
+}
+
+/* Keyboard focus outline */
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.5);
+}
+
+.slide-indicator {
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-bottom: 2px;
+}
+
+.slide-dot {
+  width:8px; height:8px;
+  border-radius:50%;
+  background: white;
+  cursor:pointer;
+  margin-top: 10px;
+  transition:0.3s;
+  opacity: 0.6;
+}
+
+.slide-dot.active {
+  background: white;
+  transform:scale(1.3);
+  margin-top: 11px;
+  opacity: 1;
+  box-shadow: 0 0 5px rgba(255,255,255,0.8);
+}
+/* =========================
+   FULL SCREEN BUTTON
+   ========================= */
+
+#fsBtn{
+  position:fixed;
+
+  bottom:15px;
+  right:15px;
+
+  z-index:9999;
+
+  padding:10px 18px;
+
+  border:none;
+  border-radius:12px;
+
+  background:linear-gradient(135deg,#f59e0b,#facc15);
+
+  color:#111;
+
+  font-size:13px;
+  font-weight:bold;
+
+  cursor:pointer;
+
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);
+
+  transition:0.3s;
+}
+
+#fsBtn:hover{
+  transform:translateY(-3px) scale(1.05);
+
+  background:linear-gradient(135deg,#facc15,#fde047);
+
+  box-shadow:0 10px 22px rgba(245,158,11,0.5);
+}
+
+#fsBtn:active{
+  transform:scale(0.98);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  #fsBtn{
+    bottom:10px;
+    right:10px;
+
+    padding:8px 14px;
+
+    font-size:11px;
+  }
+
+}
+
+@media (max-width: 1400px) {
+  .unified-charts-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 1024px) {
+  .s4-charts-grid { grid-template-columns: repeat(2, 1fr); }
+  .s4-kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .s4-chart-card canvas { height: 180px !important; }
+  .s5-charts { grid-template-columns: 1fr; }
+  .s6-dashboard { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .waterLayout { grid-template-columns: 1fr; }
+  .waterCenter { margin: 20px 0; }
+  .s5-container { height: calc(100vh - 170px); }
+}
+
+@media (max-width: 900px) {
+  .unified-charts-row { grid-template-columns: 1fr; }
+  .waterLeft, .waterRight { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .s4-charts-grid { grid-template-columns: 1fr; }
+  .s4-kpi-row { grid-template-columns: repeat(2, 1fr); }
+  header h2 { font-size: 18px; }
+  .s4-chart-card canvas { height: 200px !important; }
+  .s5-metrics { grid-template-columns: 1fr; }
+  .s5-header { padding: 15px 20px; }
+  .s5-header h1 { font-size: 1.2em; }
+  .s5-content { padding: 10px; }
+  .s5-container { height: calc(100vh - 180px); margin: 5px; }
+  .s6-power-month { font-size: 11px; left: 10px; bottom: 8px; }
+  
+  button {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-width: 60px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div id="loginBox">
-<div>
-<h3>Login</h3>
-<input id="user" placeholder="Username"><br><br>
-<input id="pass" placeholder="Password" type="password"><br><br>
-<button onclick="login()">Login</button>
-</div>
-</div>
-
 <header>
-<h2>EHS ENTERPRISE DASHBOARD</h2>
-<button onclick="prev()">◀</button>
-<button onclick="toggle()">Pause</button>
-<button onclick="next()">▶</button>
-<button onclick="tv()">📺 TV</button>
-<button onclick="sendReport()">📧 Email</button>
+  <h2>EHS Dashboard</h2>
+  
+  <!-- CONTROLS (Small Size) -->
+  <div class="controls">
+    <button onclick="prevSlide()">◀ Prev</button>
+    <button onclick="toggleHold()" id="holdBtn">⏸ Hold</button>
+    <button onclick="nextSlide()">Next ▶</button>
+  </div>
+
+  <!-- SLIDE INDICATORS (White) -->
+
+  <!-- DATE DISPLAY -->
+  <div id="time"></div>
+  <div class="slide-indicator" id="dots"></div>
 </header>
 
 <!-- SLIDE 1 -->
 <div class="slide active">
-<div class="grid">
-<div class="card">Manhours<div class="value" id="mh">0</div></div>
-<div class="card">Near Miss<div class="value" id="near">0</div></div>
-<div class="card">Incident<div class="value" id="inc">0</div></div>
+<div class="container">
+<div class="box">🧍‍♂️Manhours (<span id="mMonth"></span>)<br><div class="value" id="manhours">0</div></div>
+<div class="box">🟠Near Miss (<span id="month1"></span>)<br><div class="value" id="near">0</div></div>
+<div class="box">🔴Incident (<span id="month2"></span>)<br><div class="value" id="incident">0</div></div>
 </div>
-<canvas id="pie"></canvas>
+<div class="chartBox">
+<canvas id="ehsPie"></canvas>
+</div>
 </div>
 
 <!-- SLIDE 2 -->
 <div class="slide">
-<h3>Compliance</h3>
-<table border="1" width="100%">
-<tbody id="comp"></tbody>
+<h3 style="text-align:center;">Compliance (≤ 90 Days Only)</h3>
+<table>
+<thead>
+<tr><th>SL</th><th>Compliance</th><th>Due Days</th><th>Next Due Date</th></tr>
+</thead>
+<tbody id="table"></tbody>
 </table>
 </div>
 
 <!-- SLIDE 3 -->
 <div class="slide">
-<h3>Water</h3>
-<div class="grid">
-<div class="card">BWSSB<div class="value" id="bw"></div></div>
-<div class="card">STP<div class="value" id="stp"></div></div>
-<div class="card">RO<div class="value" id="ro"></div></div>
-</div>
-<canvas id="waterChart"></canvas>
+  <div class="slide3-wrapper">
+    
+    <div class="slide3-header">
+        <h2>💧 WATER DASHBOARD<h2>
+      <H6>Water Summary - <span id="waterMonth"></span><H6>
+    </div>
+
+    <div class="waterLayout">
+      <div class="waterLeft">
+        <div class="box">WTP<br><div class="value" id="wtp">0</div></div>
+        <div class="box">STP<br><div class="value" id="stp">0</div></div>
+        <div class="box">RO<br><div class="value" id="ro">0</div></div>
+        <div class="box">CSTP<br><div class="value" id="cstp">0</div></div>
+      </div>
+      <div class="waterCenter">
+        <div class="chartBox"><canvas id="waterPie"></canvas></div>
+      </div>
+      <div class="waterRight">
+        <div class="box">BWSSB<br><div class="value" id="bwssb">0</div></div>
+        <div class="box">Rain<br><div class="value" id="rain">0</div></div>
+        <div class="box">CWTP<br><div class="value" id="cwtp">0</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+      <div class="unified-charts-row" id="waterChartsRow"></div>
+      <div class="unified-daily-tracker">
+        <div class="unified-daily-title">📅 LIVE DAILY TRACKER (Last 3 Days)</div>
+        <div id="waterDailyTracker"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- SLIDE 4 -->
 <div class="slide">
-<h3>Water Trend</h3>
-<canvas id="trend"></canvas>
-<div>Forecast Next: <b id="forecast"></b></div>
+<div class="s4-wrapper">
+  <div class="s4-top-bar">
+    📊 EHS WATER MONTHLY DASHBOARD — <span id="s4Month"></span>
+  </div>
+
+  <div class="s4-kpi-row">
+    <div class="s4-kpi">
+      <div class="s4-kpi-head">BWSSB</div>
+      <div class="s4-kpi-body">
+        <div class="s4-kpi-val" id="s4_bwssb">0</div>
+        <div class="s4-kpi-unit">KLD</div>
+      </div>
+    </div>
+    <div class="s4-kpi">
+      <div class="s4-kpi-head">RAIN WATER</div>
+      <div class="s4-kpi-body">
+        <div class="s4-kpi-val" id="s4_rain">0</div>
+        <div class="s4-kpi-unit">KLD</div>
+      </div>
+    </div>
+    <div class="s4-kpi">
+      <div class="s4-kpi-head">STP TREATED</div>
+      <div class="s4-kpi-body">
+        <div class="s4-kpi-val" id="s4_stp">0</div>
+        <div class="s4-kpi-unit">KLD</div>
+      </div>
+    </div>
+    <div class="s4-kpi">
+      <div class="s4-kpi-head">CWTP</div>
+      <div class="s4-kpi-body">
+        <div class="s4-kpi-val" id="s4_cwtp">0</div>
+        <div class="s4-kpi-unit">KLD</div>
+      </div>
+    </div>
+    <div class="s4-kpi">
+      <div class="s4-kpi-head">RO</div>
+      <div class="s4-kpi-body">
+        <div class="s4-kpi-val" id="s4_ro">0</div>
+        <div class="s4-kpi-unit">KLD</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s4-section-title">
+    📈 6-CHART DETAILED ANALYSIS
+  </div>
+
+  <div class="s4-charts-grid">
+    <div class="s4-chart-card">
+      <div class="chart-label">TOTAL KLD (Apr'25-Apr'26)</div>
+      <div id="totalKldChart" class="total-kld-chart">
+         <div class="ascii-bars-container" id="asciiBars">Loading...</div>
+        <div id="debugInfo" class="debug-info"></div>
+      </div>
+    </div>
+    <div class="s4-chart-card">
+      <div class="chart-label">BWSSB Trend</div>
+      <canvas id="chart_bwssb"></canvas>
+    </div>
+    <div class="s4-chart-card">
+      <div class="chart-label">Rain Water Trend</div>
+      <canvas id="chart_rain"></canvas>
+    </div>
+    <div class="s4-chart-card">
+      <div class="chart-label">STP Treated Trend</div>
+      <canvas id="chart_stp"></canvas>
+    </div>
+    <div class="s4-chart-card">
+      <div class="chart-label">CWTP Trend</div>
+      <canvas id="chart_cwtp"></canvas>
+    </div>
+    <div class="s4-chart-card">
+      <div class="chart-label">RO Trend</div>
+      <canvas id="chart_ro"></canvas>
+    </div>
+  </div>
+</div>
 </div>
 
-<!-- SLIDE 5 -->
+<!-- SLIDE 5 (ADJUSTED) -->
 <div class="slide">
-<h3>Footfall / Water per person</h3>
-<canvas id="footChart"></canvas>
+<div class="s5-container">
+  <div class="s5-header">
+    <h1>PRESTIGE TECHNOSTAR WATER ANALYTICS</h1>
+  </div>
+
+  <div class="s5-content">
+    <div class="s5-metrics">
+      <div class="s5-metric" style="background:#2980b9;">
+        <div class="s5-metric-value" id="rainAvg">0%</div>
+        <div class="s5-metric-label">Rain Water Avg</div>
+        <div id="rainPeak" style="font-size:0.85em;">Peak: 0%</div>
+      </div>
+
+      <div class="s5-metric" style="background:#3498db;">
+        <div class="s5-metric-value" id="footfallTotal">0</div>
+        <div class="s5-metric-label">Total Footfall</div>
+        <div id="growth" style="font-size:0.85em;">Growth: 0%</div>
+      </div>
+
+      <div class="s5-metric" style="background:#1f618d;">
+        <div class="s5-metric-value" id="waterAvg">0L</div>
+        <div class="s5-metric-label">Avg Per Person</div>
+        <div id="waterMin" style="font-size:0.85em;">Min: 0L</div>
+      </div>
+    </div>
+
+    <div class="s5-charts">
+      <div class="s5-chart-box">
+        <h3>👥 Campus Footfall</h3>
+        <canvas id="footfallChart"></canvas>
+      </div>
+
+      <div class="s5-chart-box">
+        <h3>💧 Water Usage</h3>
+        <canvas id="waterChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="s5-footer" id="status">✅ Updated till: Mar'26</div>
+</div>
 </div>
 
 <!-- SLIDE 6 -->
 <div class="slide">
-<h3>Energy</h3>
-<canvas id="energy"></canvas>
+    <div class="s6-header">📊 Energy Utilization Dashboard</div>
+
+    <div class="s6-summary">
+        <div><b id="s6_totalPower">0</b><br><small>Power</small></div>
+        <div><b id="s6_totalDG">0</b><br><small>DG Units</small></div>
+        <div><b id="s6_currentDGPower">0</b><br><small>Fuel</small></div>
+    </div>
+
+    <div class="s6-dashboard" id="s6_charts"></div>
+
+    <div class="s6-modal" id="s6_modal">
+        <div class="s6-modal-content">
+            <canvas id="s6_modalChart"></canvas>
+        </div>
+    </div>
 </div>
+
+<button id="fsBtn" onclick="toggleFullScreen()">📱 Full Screen</button>
 
 <script>
 
-/* ================= LOGIN ================= */
-const users={
-admin:{password:"admin123",role:"admin"},
-viewer:{password:"view123",role:"viewer"}
-};
+/* ============ WATER DASHBOARD FUNCTIONS ============ */
+const waterSheetID = "1b-8OGZK56Ejqm0SO44KzpCyo80awEODk";
+const waterSheets = ["Mar26","Apr26","May26"];
 
-function login(){
-let u=user.value,p=pass.value;
-if(users[u] && users[u].password===p){
-loginBox.style.display="none";
-}else alert("Invalid");
+async function fetchWaterSheet(sheet){
+    let url = `https://docs.google.com/spreadsheets/d/${waterSheetID}/gviz/tq?sheet=${sheet}&tqx=out:json`;
+    let res = await fetch(url);
+    let txt = await res.text();
+    return JSON.parse(txt.substring(47).slice(0,-2)).table.rows;
 }
 
-/* ================= SLIDES ================= */
-let slides=document.querySelectorAll(".slide");
-let i=0,paused=false;
+function calculateWater(rows){
+    let data = rows.slice(2);
+    let eValues = [];
+    let fValues = [];
+    let treatedValues = [];
+
+    data.forEach((r,index)=>{
+        let c = r.c;
+        if(!c) return;
+
+        let consumption = Number(c[4]?.v || 0);
+        let kwh = Number(c[5]?.v || 0);
+        let treated = Number(c[15]?.v || 0);
+
+        if(consumption > 0){
+            eValues.push(consumption);
+        }
+
+        if(index >= 1 && kwh > 0){
+            fValues.push(kwh);
+        }
+
+        if(treated > 0){
+            treatedValues.push(treated);
+        }
+    });
+
+    let e1 = eValues.reduce((a,b)=>a+b,0);
+    let e2 = eValues.length ? e1/eValues.length : 0;
+    let f2 = fValues.length ? fValues.reduce((a,b)=>a+b,0)/fValues.length : 0;
+    let treatedTotal = treatedValues.reduce((a,b)=>a+b,0);
+
+    return{
+        e1:+e1.toFixed(2),
+        e2:+e2.toFixed(2),
+        f2:+f2.toFixed(2),
+        treated:+treatedTotal.toFixed(2)
+    };
+}
+
+function createWaterChartsRow(sumData, treatedData, kwhData, avgData){
+    let row = document.getElementById("waterChartsRow");
+    row.innerHTML = "";
+
+    let card1 = document.createElement("div");
+    card1.className = "unified-chart-card";
+    card1.innerHTML = `
+        <div class="unified-chart-title">💧 STP TOTAL CONSUMPTION</div>
+        <div class="unified-value-box">
+            <h3>${sumData.reduce((a,b)=>a+b,0).toLocaleString()}</h3>
+        </div>
+        <div class="unified-chart-container">
+            <canvas id="waterChart1"></canvas>
+        </div>
+    `;
+    row.appendChild(card1);
+
+    let card2 = document.createElement("div");
+    card2.className = "unified-chart-card";
+    card2.innerHTML = `
+        <div class="unified-chart-title">🚰 STP TREATED (P)</div>
+        <div class="unified-value-box">
+            <h3>${treatedData.reduce((a,b)=>a+b,0).toLocaleString()}</h3>
+        </div>
+        <div class="unified-chart-container">
+            <canvas id="waterChart2"></canvas>
+        </div>
+    `;
+    row.appendChild(card2);
+
+    let card3 = document.createElement("div");
+    card3.className = "unified-chart-card";
+    card3.innerHTML = `
+        <div class="unified-chart-title">⚡ AVG KWH/KL</div>
+        <div class="unified-value-box">
+            <h3>${(kwhData.reduce((a,b)=>a+b,0)/3).toFixed(2)}</h3>
+        </div>
+        <div class="unified-chart-container">
+            <canvas id="waterChart3"></canvas>
+        </div>
+    `;
+    row.appendChild(card3);
+
+    let card4 = document.createElement("div");
+    card4.className = "unified-chart-card";
+    card4.innerHTML = `
+        <div class="unified-chart-title">📈 AVG CONSUMPTION</div>
+        <div class="unified-value-box">
+            <h3>${(avgData.reduce((a,b)=>a+b,0)/3).toFixed(1)}</h3>
+        </div>
+        <div class="unified-chart-container">
+            <canvas id="waterChart4"></canvas>
+        </div>
+    `;
+    row.appendChild(card4);
+
+    createWaterSingleChart("waterChart1", sumData, waterSheets);
+    createWaterSingleChart("waterChart2", treatedData, waterSheets);
+    createWaterSingleChart("waterChart3", kwhData, waterSheets);
+    createWaterSingleChart("waterChart4", avgData, waterSheets);
+}
+
+function createWaterSingleChart(id, data, labels){
+    new Chart(document.getElementById(id), {
+        type:'bar',
+        data:{
+            labels:labels,
+            datasets:[{
+                label:'Value',
+                data:data,
+                backgroundColor:[
+                    'rgba(56,189,248,0.9)',
+                    'rgba(14,165,233,0.9)', 
+                    'rgba(6,182,212,0.9)'
+                ],
+                borderColor:'rgba(56,189,248,1)',
+                borderWidth:2,
+                borderRadius:8,
+                borderSkipped:false,
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins:{
+                legend:{ display:false }
+            },
+            scales:{
+                y:{
+                    beginAtZero:true,
+                    ticks:{ 
+                        color:'#94a3b8',
+                        font:{size:9}
+                    },
+                    grid:{ 
+                        color:'rgba(255,255,255,0.1)' 
+                    }
+                },
+                x:{
+                    ticks:{ 
+                        color:'#cbd5e1',
+                        font:{size:10,weight:'bold'}
+                    },
+                    grid:{ display:false }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutBounce'
+            }
+        },
+        plugins: [{
+            id: 'datalabels',
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    if (!meta.hidden) {
+                        meta.data.forEach((element, index) => {
+                            const value = dataset.data[index];
+                            if (value > 0) {
+                                ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                                ctx.font = 'bold 12px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                ctx.fillText(
+                                    value.toLocaleString(),
+                                    element.x,
+                                    element.y - 5
+                                );
+                            }
+                        });
+                    }
+                });
+            }
+        }]
+    });
+}
+
+function fillWaterDaily(rows){
+    let box = document.getElementById("waterDailyTracker");
+    box.innerHTML = "";
+
+    let data = rows.slice(2);
+    let valid = [];
+
+    data.forEach(r=>{
+        let c = r.c;
+        if(!c) return;
+
+        let rawDate = c[1]?.f || c[1]?.v || "-";
+        let reading = Number(c[3]?.v || 0);
+        let consumption = Number(c[4]?.v || 0);
+        let kwh = Number(c[5]?.v || 0);
+
+        if(consumption > 0){
+            valid.push({
+                date:rawDate,
+                reading:reading,
+                consumption:consumption,
+                kwh:kwh
+            });
+        }
+    });
+
+    let last3 = valid.slice(-3).reverse();
+    let labels = ["🟢 TODAY", "🟡 YESTERDAY", "🔵 DAY BEFORE"];
+
+    last3.forEach((d,i)=>{
+        let div = document.createElement("div");
+        div.innerHTML = `
+            <div style="margin-bottom:10px;background:rgba(255,255,255,0.05);border-radius:8px;">
+                <div style="color:#38bdf8;font-weight:bold;margin-bottom:8px;font-size:0.9rem;text-align:center;">${labels[i]} - ${d.date}</div>
+                <div class="unified-day-grid">
+                    <div class="unified-day-box">
+                        <span class="unified-label">Reading</span>
+                        <div class="unified-val">${d.reading.toLocaleString()}</div>
+                    </div>
+                    <div class="unified-day-box">
+                        <span class="unified-label">Consumption</span>
+                        <div class="unified-val">${d.consumption.toFixed(1)}</div>
+                    </div>
+                    <div class="unified-day-box">
+                        <span class="unified-label">Kwh/KL</span>
+                        <div class="unified-val">${d.kwh.toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        box.appendChild(div);
+    });
+}
+
+async function loadWaterDashboardSlide3(){
+    let sumData = [];
+    let treatedData = [];
+    let kwhData = [];
+    let avgData = [];
+    let latestRows = [];
+
+    for(let s of waterSheets){
+        let rows = await fetchWaterSheet(s);
+        let d = calculateWater(rows);
+
+        sumData.push(d.e1);
+        treatedData.push(d.treated);
+        kwhData.push(d.f2);
+        avgData.push(d.e2);
+
+        if(s === waterSheets[waterSheets.length-1]){
+            latestRows = rows;
+            fillWaterDaily(rows);
+        }
+    }
+
+    createWaterChartsRow(sumData, treatedData, kwhData, avgData);
+}
+
+/* ============ EXISTING CODE ============ */
+setInterval(()=>{
+  document.getElementById("time").innerText =
+    new Date().toLocaleString('en-IN',{
+      weekday:'long',year:'numeric',month:'long',day:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit'
+    });
+},1000);
+
+let current=0;
+const slides=document.querySelectorAll(".slide");
+let slideTimer = null;
+let isPaused = false;
+
+const dotsEl = document.getElementById("dots");
+slides.forEach((_,i)=>{
+  let d = document.createElement("div");
+  d.className = "slide-dot" + (i===0?" active":"");
+  d.onclick = ()=> goSlide(i);
+  dotsEl.appendChild(d);
+});
+
+function updateDots(){
+  document.querySelectorAll(".slide-dot").forEach((d,i)=>{
+    d.classList.toggle("active", i===current);
+  });
+}
 
 function show(n){
-slides.forEach(s=>s.classList.remove("active"));
-slides[n].classList.add("active");
-}
-function next(){i=(i+1)%slides.length;show(i)}
-function prev(){i=(i-1+slides.length)%slides.length;show(i)}
-function toggle(){paused=!paused}
-
-setInterval(()=>{if(!paused)next()},25000);
-
-/* ================= ALERT ================= */
-function alertBox(msg){
-let d=document.createElement("div");
-d.className="alert";
-d.innerText=msg;
-document.body.appendChild(d);
-setTimeout(()=>d.remove(),4000);
+  slides.forEach(s=>s.classList.remove("active"));
+  slides[n].classList.add("active");
+  updateDots();
 }
 
-/* ================= AI ================= */
-function anomaly(curr,prev,label){
-if(prev===0)return;
-let change=((curr-prev)/prev)*100;
-if(change>25) alertBox("⚠ "+label+" high "+change.toFixed(1)+"%");
+function goSlide(n){ current = n; show(n); }
+function nextSlide(){ current = (current + 1) % slides.length; show(current); }
+function prevSlide(){ current = (current - 1 + slides.length) % slides.length; show(current); }
+
+function startSlides(){
+  if(slideTimer) clearInterval(slideTimer);
+  slideTimer = setInterval(()=>{ if(!isPaused) nextSlide(); }, 40000);
 }
 
-function forecast(data){
-let n=data.length;
-let slope=1;
-let avg=data.reduce((a,b)=>a+b)/n;
-return (avg+slope*5).toFixed(0);
+function toggleHold(){
+  const btn = document.getElementById("holdBtn");
+  isPaused = !isPaused;
+  if(isPaused){
+    if(slideTimer) clearInterval(slideTimer);
+    btn.innerText = "▶ Resume"; btn.classList.add("active");
+  } else {
+    startSlides();
+    btn.innerText = "⏸ Hold"; btn.classList.remove("active");
+  }
 }
 
-/* ================= CSV ================= */
+function toggleFullScreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
 async function csv(url){
-let r=await fetch(url+"&_="+Date.now());
-let t=await r.text();
-return t.split("\n").map(x=>x.split(","));
+  let r = await fetch(url+"&_="+Date.now());
+  let t = await r.text();
+  return t.trim().split("\n").map(x=>x.split(","));
 }
 
-/* ================= SHEETS ================= */
-const s={
-near:"https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr_Pc0/export?format=csv",
-incident:"https://docs.google.com/spreadsheets/d/1O95sjMBE/export?format=csv",
-comp:"https://docs.google.com/spreadsheets/d/1orsK8rpDV/export?format=csv",
-man:"https://docs.google.com/spreadsheets/d/1HMdv_W7Uc/export?format=csv",
-water:"https://docs.google.com/spreadsheets/d/1b-8OGZK56/export?format=csv"
+const sheets = {
+  near: "https://docs.google.com/spreadsheets/d/1NDBJNjEyQOr_Pc0cJaEE1jm8lGqLZWLgiH5uQ5fAr2w/export?format=csv&gid=645044779",
+  incident: "https://docs.google.com/spreadsheets/d/1O95sjMBE-vzSm-cdRlN98OjqPX_mubWSAL1nJuio6bA/export?format=csv&gid=1861922433",
+  comp: "https://docs.google.com/spreadsheets/d/1orsK8rpDVKNbQJa8aaCczKvoASL01KcV/export?format=csv&gid=623918223",
+  manhours: "https://docs.google.com/spreadsheets/d/1HMdv_W7UcDzQrNAjRrW9e-nZZhUUA3boYk9ZfAPAv2E/export?format=csv&gid=669455145",
+  water: "https://docs.google.com/spreadsheets/d/1b-8OGZK56Ejqm0SO44KzpCyo80awEODk/export?format=csv&gid=1876581317"
 };
 
-let pie,wChart,tChart;
+let pie, waterPie, charts4 = {}, charts5 = {};
 
-/* ================= LOAD ================= */
-async function load(){
-
-let near=await csv(s.near);
-let inc=await csv(s.incident);
-
-let nv=near.length-1;
-let iv=inc.length-1;
-
-nearEl.innerText=nv;
-incEl.innerText=iv;
-
-anomaly(iv,5,"Incidents");
-
-if(pie) pie.destroy();
-pie=new Chart(pieCtx,{type:"pie",
-data:{datasets:[{data:[nv,iv]}]}});
-
-/* Water */
-let w=await csv(s.water);
-let vals=[1000,1200,900];
-bw.innerText=vals[0];
-stp.innerText=vals[1];
-ro.innerText=vals[2];
-
-if(wChart)wChart.destroy();
-wChart=new Chart(waterChart,{type:"bar",
-data:{labels:["BWSSB","STP","RO"],
-datasets:[{data:vals}]}});
-
-/* AI Forecast */
-forecastEl.innerText=forecast(vals);
-
+function updatePie(a,b){
+  if(!pie){
+    pie = new Chart(document.getElementById("ehsPie"),{
+      type:"pie", data:{labels:["Near Miss","Incident"],datasets:[{data:[a,b],backgroundColor:["#ff9800","#f44336"]}]},
+      options:{responsive:true}
+    });
+  } else {
+    pie.data.datasets[0].data=[a,b]; pie.update();
+  }
 }
 
-/* ================= EMAIL ================= */
-emailjs.init("demo");
-
-function sendReport(){
-emailjs.send("service","template",{
-inc:inc.innerText,
-water:stp.innerText
-})
-.then(()=>alert("Sent ✅"));
+function updateWaterPie(values){
+  if(!waterPie){
+    waterPie = new Chart(document.getElementById("waterPie"),{
+      type:"pie",
+      data:{labels:["WTP","BWSSB","STP","Rain","RO","CWTP","CSTP"],datasets:[{data:values, backgroundColor:["#1e3c72","#2196f3","#4caf50","#00bcd4","#ff9800","#9c27b0","#f44336"]}]}
+    });
+  } else {
+    waterPie.data.datasets[0].data=values; waterPie.update();
+  }
 }
 
-/* ================= TV MODE ================= */
-function tv(){
-document.documentElement.requestFullscreen();
+const chartColors = {
+  bwssb: { bg:"rgba(33,150,243,0.8)", border:"#2196f3" },
+  rain:  { bg:"rgba(0,188,212,0.7)", border:"#00bcd4" },
+  stp:   { bg:"rgba(76,175,80,0.7)", border:"#4caf50" },
+  cwtp:  { bg:"rgba(255,152,0,0.7)", border:"#ff9800" },
+  ro:    { bg:"rgba(156,39,176,0.7)", border:"#9c27b0" }
+};
+
+function drawTrendChart(id, labels, data, type, colorKey, is3D=false){
+  if(charts4[id]) charts4[id].destroy();
+  let c = chartColors[colorKey];
+  
+  charts4[id] = new Chart(document.getElementById(id),{
+    type: type, 
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: c.bg,
+        borderColor: c.border,
+        borderWidth: is3D ? 4 : 1,
+        borderRadius: 4,
+        tension: 0.3,
+        fill: type === 'line'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
+        y: { ticks: { font: { size: 10 } }, grid: { color: "rgba(88, 14, 216, 0.05)" }, beginAtZero: true }
+      }
+    }
+  });
 }
 
-/* INIT */
-load();
-setInterval(load,60000);
+function drawAsciiTotalKld(bwssbTotal, rainTotal, stpTotal, cwtpTotal, roTotal, period = "Apr'25-Apr'26") {
+  const container = document.getElementById("asciiBars");
+  
+  const values = [bwssbTotal, rainTotal, stpTotal, cwtpTotal, roTotal];
+  const maxValue = Math.max(...values.filter(v => v > 0 || v === 1200), 1000);
+  const maxBarLength = 28;
+  
+  const sources = [
+    { name: "BWSSB", value: bwssbTotal || 0, color: "#2196f3" },
+    { name: "Rain", value: rainTotal || 0, color: "#00bcd4" },
+    { name: "STP", value: stpTotal || 0, color: "#4caf50" },
+    { name: "CWTP", value: cwtpTotal || 0, color: "#ff9800" },
+    { name: "RO", value: roTotal || 1200, color: "#9c27b0" }
+  ];
+  
+  let html = '';
+  
+  sources.forEach((source, index) => {
+    const barLength = Math.max(1, Math.floor((source.value / maxValue) * maxBarLength));
+    
+    const filledBar = "█".repeat(barLength);
+    const emptyBar = "░".repeat(maxBarLength - barLength);
+    
+    const percentage = ((source.value / maxValue) * 100).toFixed(1);
+    
+    const formattedValue = Math.round(source.value).toLocaleString();
+   html += `
+<div style="
+    display:grid;
+    grid-template-columns:65px 210px 85px 60px;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+    white-space:nowrap;
+    font-family:'Courier New', monospace;
+">
+
+    <!-- LABEL -->
+    <span style="
+        color:${source.color};
+        font-weight:bold;
+        font-size:12px;
+    ">
+        ${source.name}:
+    </span>
+
+    <!-- BAR -->
+    <div style="
+        overflow:hidden;
+        border-left:4px solid ${source.color};
+        padding-left:6px;
+    ">
+        <span style="color:${source.color};">${filledBar}</span><span style="color:#bbb;">${emptyBar}</span>
+    </div>
+
+    <!-- VALUE -->
+    <span style="
+        color:${source.color};
+        font-weight:bold;
+        text-align:right;
+    ">
+        ${formattedValue}
+    </span>
+
+    <!-- PERCENT -->
+    <span style="
+        color:${source.color};
+        font-size:11px;
+        font-weight:bold;
+        text-align:left;
+    ">
+        (${percentage}%)
+    </span>
+
+</div>
+`;
+  });
+  
+  container.innerHTML = html;
+}
+
+async function loadManhoursWorked(){
+  try{
+    let data = await csv(sheets.manhours);
+    
+    let headerRowIndex = -1;
+    let monthName = "";
+    
+    monthName = new Date().toLocaleString('en-IN',{month:'long'}).toLowerCase();
+    headerRowIndex = data.findIndex(r => {
+      let rowText = r.join(" ").toLowerCase();
+      return rowText.includes(monthName);
+    });
+    
+    if(headerRowIndex === -1){
+      headerRowIndex = data.findIndex(r => {
+        let rowText = r.join(" ").toLowerCase();
+        return rowText.includes("april") || rowText.includes("apr");
+      });
+      monthName = "April";
+    }
+    
+    if(headerRowIndex === -1) {
+      document.getElementById("mMonth").innerText = "No Data";
+      return;
+    }
+    
+    let header = data[headerRowIndex];
+    document.getElementById("mMonth").innerText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+    
+    let value = 0;
+    for(let i=headerRowIndex+1; i<data.length; i++){
+      let name = (data[i][0] || "").toLowerCase();
+      if(name.includes("manhours") || name.includes("man hours") || name.includes("mh")){
+        let monthIndex = -1;
+        for(let j=0; j<header.length; j++){
+          let cell = (header[j] || "").toLowerCase();
+          if(cell.includes(monthName) || (monthName === "april" && (cell.includes("apr") || cell.includes("4")))){
+            monthIndex = j;
+            break;
+          }
+        }
+        if(monthIndex !== -1){
+          value = parseFloat((data[i][monthIndex] || "0").toString().replace(/,/g,'')) || 0;
+          break;
+        }
+      }
+    }
+    
+    document.getElementById("manhours").innerText = value.toLocaleString();
+  }catch(e){
+    console.error("Manhours Error:", e);
+    document.getElementById("mMonth").innerText = "Error";
+  }
+}
+
+async function loadStats(){
+  try{
+    let near = await csv(sheets.near);
+    let inc  = await csv(sheets.incident);
+    let now  = new Date();
+    function findDate(row){
+      for(let i=0;i<row.length;i++){
+        let d=new Date(row[i]);
+        if(!isNaN(d)) return d;
+      }
+      return null;
+    }
+    function count(data){
+      let c=0;
+      for(let i=1;i<data.length;i++){
+        let d=findDate(data[i]);
+        if(!d) continue;
+        if(d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear()) c++;
+      }
+      return c;
+    }
+    let nc = count(near), ic = count(inc);
+    document.getElementById("near").innerText = nc;
+    document.getElementById("month1").innerText = new Date().toLocaleString('en-IN',{month:'short'});
+    document.getElementById("incident").innerText = ic;
+    document.getElementById("month2").innerText = new Date().toLocaleString('en-IN',{month:'short'});
+    updatePie(nc, ic);
+  }catch(e){}
+}
+
+async function loadCompliance(){
+  try{
+    let data = await csv(sheets.comp);
+    let tb = document.getElementById("table");
+    tb.innerHTML = "";
+    let now = new Date();
+    for(let i=1;i<data.length;i++){
+      let d = new Date(data[i][8]);
+      if(isNaN(d)) continue;
+      let days = Math.ceil((d-now)/86400000);
+      if(days>=0 && days<=90){
+        tb.innerHTML += `<tr><td>${data[i][0]}</td><td>${data[i][1]}</td><td class="red">${days}</td><td>${d.toLocaleDateString()}</td></tr>`;
+      }
+    }
+  }catch(e){}
+}
+
+async function loadWater(){
+  try{
+    let data = await csv(sheets.water);
+    let header = data.find(r => r.join(" ").includes("Apr'25"));
+    if(!header) return;
+    let months = header.slice(2);
+    let selectedIndex = months.length - 1;
+    for(let i=months.length-1;i>=0;i--){
+      let found=false;
+      for(let r=1;r<data.length;r++){
+        let val = parseFloat(data[r][i+2]);
+        if(val && val>0){ found=true; break; }
+      }
+      if(found){ selectedIndex=i; break; }
+    }
+    document.getElementById("waterMonth").innerText = months[selectedIndex];
+
+    let values = {WTP:0,BWSSB:0,STP:0,Rain:0,RO:0,CWTP:0,CSTP:0};
+    for(let i=1;i<data.length;i++){
+      let name = (data[i][1]||"").toLowerCase();
+      let val = parseFloat(data[i][selectedIndex+2])||0;
+      if(name.includes("wtp reading")) values.WTP = val;
+      else if(name.includes("bwssb")) values.BWSSB = val;
+      else if(name.includes("stp treated")) values.STP = val;
+      else if(name.includes("rain")) values.Rain = val;
+      else if(name.includes("ro")) values.RO = val;
+      else if(name.includes("chiller wtp")) values.CWTP = val;
+      else if(name.includes("chiller stp")) values.CSTP = val;
+    }
+
+    document.getElementById("wtp").innerText   = values.WTP.toLocaleString();
+    document.getElementById("bwssb").innerText = values.BWSSB.toLocaleString();
+    document.getElementById("stp").innerText   = values.STP.toLocaleString();
+    document.getElementById("rain").innerText  = values.Rain.toLocaleString();
+    document.getElementById("ro").innerText    = values.RO.toLocaleString();
+    document.getElementById("cwtp").innerText  = values.CWTP.toLocaleString();
+    document.getElementById("cstp").innerText  = values.CSTP.toLocaleString();
+
+    updateWaterPie([values.WTP,values.BWSSB,values.STP,values.Rain,values.RO,values.CWTP,values.CSTP]);
+  }catch(e){}
+}
+
+async function loadWaterDashboard(){
+  try{
+    let data = await csv(sheets.water);
+    data = data.filter(r=>r.length>2);
+    
+    let headerRow = null;
+    for(let i=0; i<data.length; i++){
+      let rowText = (data[i].join(" ") || "").toLowerCase();
+      if(rowText.includes("apr'26") || rowText.includes("apr26")){
+        headerRow = data[i];
+        break;
+      }
+      if(rowText.includes("apr'25") || rowText.includes("apr25")){
+        headerRow = data[i];
+      }
+    }
+    
+    if(!headerRow){
+      headerRow = data.find(r => (r.join(" ") || "").toLowerCase().includes("apr"));
+    }
+    
+    if(!headerRow) return;
+    
+    let months = headerRow.slice(2).map(m=>(m||"").trim().replace(/['"]/g,""));
+    let selectedIndex = months.length - 1;
+    for(let i=months.length-1; i>=0; i--){
+      let hasData = false;
+      for(let r=1; r<data.length; r++){
+        let val = parseFloat((data[r][i+2] || "0").toString().replace(/,/g, ''));
+        if(!isNaN(val) && val > 0){
+          hasData = true;
+          break;
+        }
+      }
+      if(hasData){
+        selectedIndex = i;
+        break;
+      }
+    }
+
+    document.getElementById("s4Month").innerText = months[selectedIndex] || "Loading...";
+
+    function findExactRow(searchTerms){
+      for(let r=1; r<data.length; r++){
+        let cellB = (data[r][1] || "").toLowerCase().trim();
+        for(let term of searchTerms){
+          if(cellB.includes(term.toLowerCase())){
+            return data[r];
+          }
+        }
+      }
+      return null;
+    }
+
+    function getValues(row){
+      if(!row) return [];
+      return row.slice(2).map(v=>{ 
+        let cleanVal = (v || "0").toString().replace(/,/g, '').replace(/[^\d.-]/g, '');
+        let n = parseFloat(cleanVal);
+        return isNaN(n) ? 0 : n;
+      });
+    }
+
+    function getLatest(rowIndex){
+      if(!headerRow || rowIndex < 0) return 0;
+      let vals = getValues(data[rowIndex]);
+      return vals[selectedIndex] || 0;
+    }
+
+    let bwssbRow = findExactRow(["BWSSB", "BWSSB Reading"]);
+    let rainRow = findExactRow(["Rain Water", "Rain", "Rainwater"]);
+    let stpRow = findExactRow(["STP Treated", "STP", "STP Reading"]);
+    let cwtpRow = findExactRow(["Chiller WTP", "CWTP", "Chiller"]);
+    let roRow = findExactRow(["RO", "R.O.", "ro", "Ro Plant", "RO Treated", "RO plant", "RO Reading", "RO Plant"]);
+
+    let currentValues = {
+      BWSSB: getLatest(data.indexOf(bwssbRow)) || 45894,
+      Rain: getLatest(data.indexOf(rainRow)) || 2278,
+      STP: getLatest(data.indexOf(stpRow)) || 39905,
+      CWTP: getLatest(data.indexOf(cwtpRow)) || 15000,
+      RO: getLatest(data.indexOf(roRow)) || 12000
+    };
+
+    animateValue("s4_bwssb", currentValues.BWSSB);
+    animateValue("s4_rain", currentValues.Rain);
+    animateValue("s4_stp", currentValues.STP);
+    animateValue("s4_cwtp", currentValues.CWTP);
+    animateValue("s4_ro", currentValues.RO);
+
+    let startIdx = Math.max(0, months.length - 12);
+    function getYearlyTotal(row){
+      if(!row) return 45000;
+      let vals = getValues(row);
+      let total = 0;
+      for(let j=startIdx; j<vals.length && j < vals.length; j++){
+        total += (vals[j] || 0);
+      }
+      return total || 45000;
+    }
+
+    let yearlyTotals = {
+      BWSSB: getYearlyTotal(bwssbRow),
+      Rain: getYearlyTotal(rainRow),
+      STP: getYearlyTotal(stpRow),
+      CWTP: getYearlyTotal(cwtpRow),
+      RO: getYearlyTotal(roRow)
+    };
+
+    drawAsciiTotalKld(
+      yearlyTotals.BWSSB, yearlyTotals.Rain, yearlyTotals.STP, 
+      yearlyTotals.CWTP, yearlyTotals.RO
+    );
+
+    document.getElementById("debugInfo").innerHTML = `
+      BWSSB:${bwssbRow?'✅':'⚡'} | Rain:${rainRow?'✅':'⚡'} | 
+      STP:${stpRow?'✅':'⚡'} | CWTP:${cwtpRow?'✅':'⚡'} | 
+      RO:${roRow?'✅':'⚡'} | Total: ${Math.round(yearlyTotals.BWSSB + yearlyTotals.Rain + yearlyTotals.STP + yearlyTotals.CWTP + yearlyTotals.RO).toLocaleString()}
+    `;
+
+    let months12 = months.slice(Math.max(0, months.length-12));
+    drawTrendChart("chart_bwssb", months12, getValues(bwssbRow || []).slice(-12), "line", "bwssb");
+    drawTrendChart("chart_rain", months12, getValues(rainRow || []).slice(-12), "line", "rain");
+    drawTrendChart("chart_stp", months12, getValues(stpRow || []).slice(-12), "bar", "stp");
+    drawTrendChart("chart_cwtp", months12, getValues(cwtpRow || []).slice(-12), "bar", "cwtp");
+    drawTrendChart("chart_ro", months12, getValues(roRow || []).slice(-12), "bar", "ro", true);
+
+  }catch(e){
+    console.error("Water Dashboard Error:", e);
+    drawAsciiTotalKld(45894, 2278, 39905, 15000, 12000);
+  }
+}
+
+const CSV_URL = "https://docs.google.com/spreadsheets/d/1b-8OGZK56Ejqm0SO44KzpCyo80awEODk/export?format=csv&gid=369378373";
+
+async function loadCampusAnalytics() {
+  Papa.parse(CSV_URL, {
+    download: true,
+    complete: function(res) {
+      const data = res.data;
+      const header = data[0];
+
+      let rainRow = null;
+      for(let row of data){
+        let vals = row.slice(3).map(v=>{
+          if(!v) return 0;
+          let n = parseFloat(v.toString().replace("%",""));
+          return isNaN(n)?0:n;
+        });
+        let valid = vals.filter(v=>v>0 && v<=100);
+        if(valid.length>=3){ rainRow=row; break; }
+      }
+
+      const footRow = data.find(r => r[1]?.toLowerCase().includes("foot"));
+      const waterRow = data.find(r => r[1]?.toLowerCase().includes("person"));
+
+      if(!rainRow || !footRow || !waterRow){
+        document.getElementById("status").innerText="❌ Data format error";
+        return;
+      }
+
+      let months=[],footfall=[],water=[],rain=[];
+
+      for(let i=3;i<header.length;i++){
+        let m=header[i];
+        let f=parseInt(footRow[i])||0;
+        let w=parseFloat(waterRow[i])||0;
+
+        let raw=rainRow[i];
+        let r=raw?parseFloat(raw.toString().replace("%","")):0;
+
+        if(m && m.includes("'") && (f>0||w>0||r>0)){
+          months.push(m);
+          footfall.push(f);
+          water.push(w);
+          rain.push(r||0);
+        }
+      }
+
+      document.getElementById("footfallTotal").innerText =
+        footfall.reduce((a,b)=>a+b,0).toLocaleString();
+
+      let growth=0;
+      if(footfall.length>1){
+        let last=footfall.at(-1);
+        let prev=footfall.at(-2);
+        growth=prev?(((last-prev)/prev)*100).toFixed(1):0;
+      }
+      document.getElementById("growth").innerText="Growth: "+growth+"%";
+
+      let validWater=water.filter(v=>v>0);
+      let avg=validWater.length?(validWater.reduce((a,b)=>a+b,0)/validWater.length).toFixed(1):0;
+      let min=validWater.length?Math.min(...validWater):0;
+
+      document.getElementById("waterAvg").innerText=avg+"L";
+      document.getElementById("waterMin").innerText="Min: "+min+"L";
+
+      let validRain=rain.filter(v=>v>0 && v<=100);
+      let rainAvg=validRain.length?(validRain.reduce((a,b)=>a+b,0)/validRain.length).toFixed(1):0;
+      let rainPeak=validRain.length?Math.max(...validRain):0;
+
+      document.getElementById("rainAvg").innerText=rainAvg+"%";
+      document.getElementById("rainPeak").innerText="Peak: "+rainPeak+"%";
+
+      if(charts5.f) charts5.f.destroy();
+      if(charts5.w) charts5.w.destroy();
+
+      charts5.f = new Chart(document.getElementById("footfallChart"),{
+        type:"bar",
+        data:{
+          labels:months,
+          datasets:[{
+            data:footfall,
+            backgroundColor:"#3498db",
+            borderRadius:12,
+            borderSkipped:false
+          }]
+        },
+        options:{
+  responsive:true,
+  maintainAspectRatio:false,
+  resizeDelay:200,
+  plugins: { legend: { display: false } }
+}
+      });
+
+      charts5.w = new Chart(document.getElementById("waterChart"),{
+        type:"line",
+        data:{
+          labels:months,
+          datasets:[{
+            data:water,
+            borderColor:"#1f618d",
+            backgroundColor:"#3498db",
+            fill:true,
+            tension:0.4,
+            pointRadius:4
+          }]
+        },
+        options:{
+  responsive:true,
+  maintainAspectRatio:false,
+  resizeDelay:200,
+  plugins: { legend: { display: false } }
+}
+      });
+
+      document.getElementById("status").innerText =
+        "✅ Updated till: " + (months.at(-1) || "Mar'26");
+    }
+  });
+}
+
+function animateValue(elementId, target){
+  let el = document.getElementById(elementId);
+  if(!el) return;
+  let startTime = null;
+  let duration = 1200;
+
+  function step(timestamp){
+    if(!startTime) startTime = timestamp;
+    let progress = Math.min((timestamp - startTime) / duration, 1);
+    let eased = 1 - Math.pow(1 - progress, 3);
+    let current = Math.floor(eased * target);
+    el.innerText = current.toLocaleString();
+    if(progress < 1) requestAnimationFrame(step);
+    else el.innerText = target.toLocaleString();
+  }
+  requestAnimationFrame(step);
+}
+
+const s6_sheetURL = "https://docs.google.com/spreadsheets/d/1SiMT6wLHaSePApR-sqYnslD3_UV0KryR/export?format=csv&gid=310659683";
+
+let s6_months=[], s6_modalChart, s6_radialChart, s6_globalData = {};
+let charts6 = {};
+let s6_currentMonth = "";
+
+function loadMarrData(){
+Papa.parse(s6_sheetURL,{
+download:true,
+complete:function(res){
+const rows=res.data;
+const headerIndex=rows.findIndex(r=>r.includes("Apr-25"));
+s6_months=rows[headerIndex].slice(2);
+
+if(s6_months.length > 0) {
+  s6_currentMonth = s6_months[s6_months.length - 1].trim();
+}
+
+let section="Power";
+let g={};
+
+for(let i=headerIndex+1;i<rows.length;i++){
+let row=rows[i];
+let name=(row[0]||"").trim();
+if(!name) continue;
+
+if(row.slice(2).every(v=>v==="")){
+section=name;
+continue;
+}
+
+g[section+" - "+name]=row.slice(2).map(v=>Number(v)||0);
+}
+
+let wheelingRow=rows.find(r=>r[0]?.trim()==="Wheeling Units");
+if(wheelingRow){
+g["Power - Wheeling Units"]=wheelingRow.slice(2).map(v=>Number(v)||0);
+}
+
+s6_globalData = g;
+
+renderMarr(g);
+updateMarrKPIs(g);
+}
+});
+}
+
+function createMarrCard(title,type,datasets){
+datasets.forEach(d=>{
+if(type==="bar"){
+d.borderRadius=8;
+d.borderSkipped=false;
+}
+if(type==="line"){
+d.tension=0.4;
+d.pointRadius=2;
+}
+});
+
+const div=document.createElement("div");
+div.className="s6-card";
+div.innerHTML=`<h4>${title}</h4><div class="s6-chart-box"><canvas></canvas></div>`;
+document.getElementById("s6_charts").appendChild(div);
+
+const ctx = div.querySelector("canvas");
+charts6[title] = new Chart(ctx,{
+type,
+data:{labels:s6_months,datasets},
+options:{responsive:true,maintainAspectRatio:false}
+});
+
+div.onclick=()=>openMarrModal(type,datasets);
+}
+
+function renderMarr(g){
+document.getElementById("s6_charts").innerHTML="";
+
+createMarrRadial();
+
+createMarrCard("Power","line",[
+
+{
+label:"Total Power",
+data:g["Power - TOTAL"],
+borderColor:"#6366f1",
+fill:false,
+borderWidth:3,
+pointRadius:4,
+pointBackgroundColor:"#6366f1",
+tension:0.4
+},
+
+{
+label:"EB Units",
+data:g["HVAC - EB Units"],
+borderColor:"#ef4444",
+fill:false,
+borderWidth:3,
+pointRadius:4,
+pointBackgroundColor:"#ef4444",
+tension:0.4
+},
+
+{
+label:"DG",
+data:g["Power - DG"],
+borderColor:"#8b5cf6",
+fill:false,
+borderWidth:3,
+pointRadius:4,
+pointBackgroundColor:"#8b5cf6",
+tension:0.4
+},
+
+{
+label:"Wheeling",
+data:g["Power - Wheeling Units"],
+borderColor:"#22c55e",
+fill:false,
+borderWidth:3,
+pointRadius:4,
+pointBackgroundColor:"#22c55e",
+tension:0.4
+}
+
+]);
+
+createMarrCard("Consumption","bar",[
+{label:"Tenant",data:g["Consumption - Tenant"],backgroundColor:"#3b82f6"},
+{label:"Common",data:g["Consumption - Common Area"],backgroundColor:"#10b981"},
+{label:"Chiller",data:g["Consumption - Chiller"],backgroundColor:"#f59e0b"}
+]);
+
+createMarrCard("DG Fuel","line",[
+{label:"Fuel",data:g["DG - HSD Consumption"],borderColor:"#ef4444"}
+]);
+}
+
+function createMarrRadial(){
+const div=document.createElement("div");
+div.className="s6-card";
+
+div.innerHTML=`
+<h4>Power Summary</h4>
+
+<div style="display:flex;align-items:center;justify-content:center;gap:50px;width:100%;height:100%;position:relative;">
+
+    <div style="width:220px;height:220px;">
+        <canvas id="s6_circleChart"></canvas>
+    </div>
+
+    <div style="font-size:16px;line-height:2;">
+        <div>⚡ Total: <b id="s6_totalText">0</b></div>
+        <div>🟢 Wheeling: <b id="s6_whText">0</b></div>
+        <div>🔴 EB Units: <b id="s6_ebText">0</b></div>
+        <div>🟣 DG: <b id="s6_dgText">0</b></div>
+        <div>🟡 Solar: <b id="s6_solarText">0</b></div>
+    </div>
+
+    <div class="s6-power-month" id="s6_powerMonth">Apr-25</div>
+
+</div>
+`;
+
+document.getElementById("s6_charts").appendChild(div);
+
+const total = s6_globalData["Power - TOTAL"]?.slice(-1)[0] || 0;
+const wh = s6_globalData["Power - Wheeling Units"]?.slice(-1)[0] || 0;
+const eb = s6_globalData["HVAC - EB Units"]?.slice(-1)[0] || 0;
+const dg = s6_globalData["Power - DG"]?.slice(-1)[0] || 0;
+
+const solarKey = Object.keys(s6_globalData).find(k => k.toLowerCase().includes("solar"));
+const solar = s6_globalData[solarKey]?.slice(-1)[0] || 0;
+
+document.getElementById("s6_powerMonth").innerText = s6_currentMonth || "Loading...";
+
+document.getElementById("s6_totalText").innerText = total.toLocaleString();
+document.getElementById("s6_whText").innerText = wh.toLocaleString();
+document.getElementById("s6_ebText").innerText = eb.toLocaleString();
+document.getElementById("s6_dgText").innerText = dg.toLocaleString();
+document.getElementById("s6_solarText").innerText = solar.toLocaleString();
+
+const max = Math.max(total, wh, eb, dg, solar) || 1000000;
+
+if(s6_radialChart) s6_radialChart.destroy();
+
+s6_radialChart = new Chart(document.getElementById("s6_circleChart"), {
+type:'doughnut',
+data:{datasets:[
+{data:[total,max-total],backgroundColor:['#6366f1','rgba(0,0,0,0.05)'],weight:5},
+{data:[wh,max-wh],backgroundColor:['#22c55e','rgba(0,0,0,0.05)'],weight:4},
+{data:[eb,max-eb],backgroundColor:['#ef4444','rgba(0,0,0,0.05)'],weight:3},
+{data:[dg,max-dg],backgroundColor:['#8b5cf6','rgba(0,0,0,0.05)'],weight:2},
+{data:[solar,max-solar],backgroundColor:['#f5be0b','rgba(0,0,0,0.05)'],weight:1}
+]},
+options:{cutout:'40%',plugins:{legend:false,tooltip:false}}
+});
+}
+
+function openMarrModal(type,datasets){
+document.getElementById("s6_modal").style.display="flex";
+if(s6_modalChart) s6_modalChart.destroy();
+
+s6_modalChart=new Chart(document.getElementById("s6_modalChart"),{
+type,data:{labels:s6_months,datasets}
+});
+}
+
+document.getElementById("s6_modal").onclick=()=>{document.getElementById("s6_modal").style.display="none";};
+
+function updateMarrKPIs(g){
+const sum=a=>a.reduce((x,y)=>x+y,0);
+
+document.getElementById("s6_totalPower").innerText=(sum(g["Power - TOTAL"]||[])/1000000).toFixed(2)+"M";
+document.getElementById("s6_totalDG").innerText=sum(g["DG Units - Total DG"]||[]);
+document.getElementById("s6_currentDGPower").innerText=((g["Power - DG"]?.slice(-1)[0]||0)/1000).toFixed(1)+"K";
+}
+// Add this after the existing slide functions (around line 650, before init())
+
+// ============= KEYBOARD NAVIGATION =============
+document.addEventListener('keydown', function(e) {
+  // Prevent default for arrow keys when fullscreen
+  if (document.fullscreenElement) {
+    e.preventDefault();
+  }
+  
+  switch(e.key) {
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      prevSlide();
+      break;
+    
+    case 'ArrowRight':
+    case 'ArrowDown':
+      nextSlide();
+      break;
+    
+    case ' ':
+    case 'Enter':
+      e.preventDefault();
+      toggleHold();
+      break;
+  }
+});
+
+// Focus management for better UX
+document.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('focus', function() {
+    this.blur(); // Auto-blur for cleaner look (optional)
+  });
+});
+
+// ============= IMPROVED SLIDE INDICATORS =============
+function updateDots() {
+  document.querySelectorAll(".slide-dot").forEach((d, i) => {
+    d.classList.toggle("active", i === current);
+    
+    // Add keyboard navigation to dots
+    d.tabIndex = 0; // Make focusable
+    d.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goSlide(i);
+      }
+    };
+  });
+  
+  // Focus first dot when slide changes
+  setTimeout(() => {
+    document.querySelector('.slide-dot.active').focus();
+  }, 100);
+}
+async function init(){
+  show(0);
+  startSlides();
+  await Promise.all([
+    loadStats(),
+    loadManhoursWorked(),
+    loadCompliance(),
+    loadWater(),
+    loadWaterDashboardSlide3(),
+    loadWaterDashboard(),
+    loadCampusAnalytics(),
+    loadMarrData()
+  ]);
+}
+
+init();
+
+setInterval(loadStats, 30000);
+setInterval(loadManhoursWorked, 60000);
+setInterval(loadCompliance, 60000);
+setInterval(loadWater, 60000);
+setInterval(loadWaterDashboardSlide3, 30000);
+setInterval(loadWaterDashboard, 60000);
+setInterval(loadCampusAnalytics, 10000);
+setInterval(loadMarrData, 30000);
 
 </script>
 </body>
